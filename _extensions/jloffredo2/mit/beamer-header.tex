@@ -1,0 +1,103 @@
+% ----- Fonts (xelatex): Roboto Serif headings, Neue Haas Grotesk body ----- %
+\usepackage{fontspec}
+\setmainfont{RobotoSerif}[
+  Path = _extensions/jloffredo2/mit/assets/fonts/ ,
+  UprightFont = RobotoSerif-400.ttf ,
+  BoldFont = RobotoSerif-600.ttf ,
+  ItalicFont = RobotoSerif-400-Italic.ttf ,
+]
+\IfFontExistsTF{Neue Haas Grotesk Text Pro}{%
+  \setsansfont{Neue Haas Grotesk Text Pro}%
+}{%
+  \setsansfont{Helvetica Neue}%
+}
+
+% ----- Colors ----- %
+\definecolor{MITDarkRed}{HTML}{750014}
+\definecolor{MITMedRed}{RGB}{193,155,161}
+\definecolor{MITLightRed}{RGB}{161,104,113}
+\definecolor{MITGray}{RGB}{231,230,230}
+\definecolor{MITFooterGray}{RGB}{111,111,111}
+
+% ----- Metropolis customization ----- %
+\setbeamercolor{normal text}{bg=white,fg=black}
+\setbeamercolor{frametitle}{bg=MITDarkRed,fg=white}
+\setbeamercolor{palette primary}{bg=MITDarkRed,fg=white}
+\setbeamercolor{palette secondary}{bg=MITMedRed,fg=white}
+\setbeamercolor{palette tertiary}{bg=MITLightRed,fg=white}
+\setbeamercolor{palette quaternary}{bg=MITLightRed,fg=white}
+\setbeamercolor{structure}{fg=black}
+\setbeamercolor{section in toc}{fg=MITDarkRed}
+\setbeamercolor{title separator}{fg=MITDarkRed}
+\setbeamercolor{progress bar}{fg=MITDarkRed,bg=MITGray}
+\setbeamercolor{progress bar in section page}{fg=MITDarkRed,bg=MITGray}
+\setbeamercolor{block title}{bg=MITMedRed,fg=black}
+\setbeamercolor{button}{bg=MITDarkRed,fg=white}
+\setbeamercolor{item projected}{bg=MITDarkRed}
+\setbeamercolor{enumerate item}{fg=MITDarkRed}
+\setbeamertemplate{itemize items}[ball]
+\setbeamertemplate{itemize subitem}{\color{MITDarkRed}$\blacktriangleright$}
+
+% Roboto Serif for titles; body stays sans (metropolis default)
+\setbeamercolor{title}{fg=MITDarkRed}
+\setbeamercolor{subtitle}{fg=MITDarkRed}
+\setbeamerfont{title}{family=\rmfamily,series=\mdseries,size=\Large}
+\setbeamerfont{subtitle}{family=\rmfamily,series=\mdseries,size=\large}
+\setbeamerfont{frametitle}{family=\rmfamily,series=\mdseries,size=\large}
+\setbeamerfont{section title}{family=\rmfamily,series=\mdseries,size=\Large}
+
+% MIT lockup on the title page
+\titlegraphic{\hfill\includegraphics[height=1.1cm]{_extensions/jloffredo2/mit/assets/mit-lockup-red.png}}
+
+% ----- Footer: name/institution left, MIT logo center, page number right ----- %
+% Main frames show n/N (title frame is frame 1: hidden and excluded from N).
+% After \appendix the whole footline template is swapped for the A-n version
+% (same approach as redefining the footline after \appendix in a plain
+% metropolis deck). Standout frames suppress the footline.
+\setbeamercolor{footline}{bg=white,fg=black}
+\makeatletter
+\newcommand{\mit@footline}[1]{%
+  \ifbool{metropolis@standout}{}{%
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.5ex,left,leftskip=2ex]{footline}%
+    \usebeamerfont{page number in head/foot}Joseph R. Loffredo, MIT%
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.5ex,right,rightskip=2ex]{footline}%
+    \usebeamerfont{page number in head/foot}\textcolor{MITDarkRed}{\textbf{#1}}%
+  \end{beamercolorbox}}%
+  \vskip0pt%
+  }%
+}
+\setbeamertemplate{footline}{%
+  \ifnum\insertframenumber=1\relax\else
+    \mit@footline{\the\numexpr\insertframenumber-1\relax/\the\numexpr\inserttotalframenumber-1\relax}%
+  \fi
+}
+
+% ----- Appendix: A-1, A-2, ... page numbers (appendixnumberbeamer) ----- %
+% The mit-filters.lua filter sets \ifmitappendixpending from inside the frame
+% preceding the `# Appendix {#appendix}` divider; the section hook below runs
+% at top level (between frames), where \appendix is safe to execute. The
+% section page renders first (before \part can clobber the section title).
+\usepackage{appendixnumberbeamer}
+\newif\ifmitappendixpending
+\AtBeginPart{}% pandoc's default hook renders a part page; \appendix calls \part
+\AtBeginSection{%
+  % metropolis's standout cleanup runs too late when a section page follows a
+  % standout frame, leaking the maroon background canvas onto it. Its group is
+  % still open here (an \endgroup would also revert the new section title), so
+  % just override the canvas color; the group ends after this frame anyway.
+  \ifbool{metropolis@standout}{\setbeamercolor{background canvas}{bg=white}}{}%
+  \ifbeamer@inframe
+    \sectionpage
+  \else
+    \frame[plain,c,noframenumbering]{\sectionpage}%
+  \fi
+  \ifmitappendixpending
+    \global\mitappendixpendingfalse
+    \appendix
+    \setbeamertemplate{footline}{\mit@footline{A-\insertframenumber}}%
+  \fi
+}
+\makeatother

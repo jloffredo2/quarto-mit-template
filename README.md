@@ -1,6 +1,11 @@
-# MIT Reveal.js Presentation Template
+# MIT Presentation Template (Quarto)
 
-Personal Quarto presentation template matching [joseph-loffredo.com](https://joseph-loffredo.com): white slides, MIT maroon (`#750014`) title bars, Roboto Serif headings, Neue Haas Grotesk body text, MIT logo bottom center, `n/N` slide numbers.
+Personal Quarto presentation template matching [joseph-loffredo.com](https://joseph-loffredo.com): white slides, MIT maroon (`#750014`), Roboto Serif headings, Neue Haas Grotesk body text. One `.qmd` renders to both formats:
+
+```bash
+quarto render talk.qmd                  # revealjs (HTML) — default
+quarto render talk.qmd --to mit-beamer  # beamer (PDF, metropolis-based)
+```
 
 ## Starting a new talk
 
@@ -15,25 +20,30 @@ Minimal front matter:
 ```yaml
 ---
 title: "My Talk"
+subtitle: "Venue or Paper Title"
 author: "Joseph R. Loffredo"
-institute: "Massachusetts Institute of Technology"
 date: today
-format: mit-revealjs
+format:
+  mit-revealjs: default
+  mit-beamer: default
 ---
 ```
 
-Render with `quarto render talk.qmd` or live-preview with `quarto preview talk.qmd`.
+## Slide types
 
-## Features
+| Syntax | Result |
+|---|---|
+| `## Title` | content slide with the maroon title bar |
+| `## Title {.plain}` | no title bar (HTML); beamer maps this to its native `plain` frame |
+| `# Section` | metropolis section page: left title over a maroon/gray rule |
+| `## Thank You! {.standout}` | full-maroon closing slide, centered white serif title |
+| `# Appendix {#appendix}` | starts the appendix: slides after it are numbered A-1, A-2, … |
 
-- `## Slide Title` — content slide with the maroon header bar
-- `## Slide Title {.plain}` — no bar (maroon title text on white); good for full-bleed figures
-- `# Section Name` — maroon section divider slide
-- Footer: name/institution lower left, MIT logo bottom center, slide number lower right (all hidden on the title slide)
+Footer on every content slide: **Joseph R. Loffredo, MIT** lower left (black), page number lower right (maroon). The title slide, section pages, and standout slides have no footer. Main slides show `n/N` where `N` excludes the title, section pages, standout slides, and the appendix (`appendixnumberbeamer` behavior, replicated in revealjs by `mit-nav.html`).
 
 ## Appendix navigation (beamer gotobutton workflow)
 
-Give slides IDs and link to them with `.button` pills:
+Give slides IDs and link with `.button` pills — in HTML they're styled like `\beamergotobutton`; in the PDF they *are* `\beamergotobutton`s (via `mit-filters.lua`):
 
 ```markdown
 ## Main Results {#main-results}
@@ -42,36 +52,44 @@ Give slides IDs and link to them with `.button` pills:
 
 # Appendix {#appendix}
 
+## Backup Slides {#appendix-toc}
+
 ## Full Estimates {#app-estimates}
 
 [Return](#main-results){.button} [Appendix TOC](#appendix-toc){.button}
 ```
 
-The slide starting the appendix must have id `appendix` (or class `.appendix`). Everything from there on is numbered `A-1, A-2, …` and excluded from the main `n/N` count — the `appendixnumberbeamer` behavior.
+The appendix divider must have id `appendix` (or class `.appendix`).
 
-## Offline presenting / PDF backup
+## Fonts
 
-Fonts load from Adobe Fonts (Neue Haas Grotesk, kit `use.typekit.net/nck6fpm.css` — same kit as the website) and Google Fonts (Roboto Serif), so a plain render needs internet. Two escape hatches:
+- **HTML**: loaded from Adobe Fonts (`use.typekit.net/nck6fpm.css`, same kit as the website) and Google Fonts. Needs internet; falls back to Helvetica Neue / Georgia offline.
+- **PDF**: Roboto Serif is bundled in `_extensions/.../assets/fonts/` (OFL license) — renders identically anywhere. Body uses Neue Haas Grotesk Text Pro if installed as a system font, else Helvetica Neue.
 
-1. **Self-contained HTML** (fonts baked in — render while online, present anywhere):
+## Offline presenting / PDF backup of the HTML deck
 
-   ```bash
-   quarto render talk.qmd -M embed-resources:true
-   ```
+```bash
+# single self-contained HTML file, zero external requests (fonts + math embedded)
+quarto render talk.qmd -M embed-resources:true -M html-math-method:mathml
 
-   If the deck has math, MathJax still loads from a CDN. For a fully offline file, switch math to the browser-native renderer (verified: zero external requests):
+# PDF snapshot of the revealjs deck
+quarto render talk.qmd
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --headless --print-to-pdf=talk.pdf --no-pdf-header-footer \
+  "file://$(pwd)/talk.html?print-pdf"
+```
 
-   ```bash
-   quarto render talk.qmd -M embed-resources:true -M html-math-method:mathml
-   ```
+Or just use the beamer PDF as the backup.
 
-2. **PDF backup** of the exact same deck: open the rendered HTML in Chrome with `?print-pdf` appended to the URL, then Cmd+P → Save as PDF. Or headless:
+## Extension layout
 
-   ```bash
-   quarto render talk.qmd
-   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
-     --headless --print-to-pdf=talk.pdf --no-pdf-header-footer \
-     "file://$(pwd)/talk.html?print-pdf"
-   ```
-
-If Neue Haas Grotesk ever fails to load (offline, or a domain not allowed on the Adobe Fonts kit), the deck falls back to Helvetica Neue, which is close. To allow a new domain, edit the web project at fonts.adobe.com.
+```
+_extensions/jloffredo2/mit/
+├── _extension.yml     # the two formats and their defaults
+├── mit.scss           # revealjs theme
+├── mit-nav.html       # revealjs: beamer-style numbering + chrome hiding
+├── fonts.html         # revealjs: Adobe/Google Fonts links
+├── beamer-header.tex  # beamer: fonts, colors, footline, appendix numbering
+├── mit-filters.lua    # beamer: gotobuttons, \appendix, standout titles
+└── assets/            # logos, Roboto Serif TTFs
+```

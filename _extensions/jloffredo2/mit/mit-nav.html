@@ -12,23 +12,51 @@
       return s.id === "appendix" || s.classList.contains("appendix");
     });
 
+    // slides that don't count: the title slide, standout slides, and section
+    // divider slides (matches beamer, where the title frame, standout frames,
+    // and section pages are unnumbered)
+    function isUncounted(s, i) {
+      return i === titleIdx ||
+        s.classList.contains("standout") ||
+        s.querySelector(":scope > h1") !== null;
+    }
+
     Reveal.configure({
       slideNumber: function (slide) {
         var idx = slides.indexOf(slide);
-        if (idx === -1 || idx === titleIdx) return [""];
+        if (idx === -1 || isUncounted(slide, idx)) return [""];
         var mainEnd = appendixIdx === -1 ? slides.length : appendixIdx;
-        var mainTotal = mainEnd - (titleIdx > -1 && titleIdx < mainEnd ? 1 : 0);
         if (appendixIdx !== -1 && idx >= appendixIdx) {
-          return ["A-" + (idx - appendixIdx + 1)];
+          var a = 0;
+          for (var i = appendixIdx; i <= idx; i++) {
+            if (!isUncounted(slides[i], i)) a++;
+          }
+          return ["A-" + a];
         }
-        var n = idx - (titleIdx > -1 && titleIdx < idx ? 1 : 0) + 1;
-        return [n + "/" + mainTotal];
+        var n = 0, total = 0;
+        for (var j = 0; j < mainEnd; j++) {
+          if (!isUncounted(slides[j], j)) {
+            total++;
+            if (j <= idx) n++;
+          }
+        }
+        return [n + "/" + total];
+      }
+    });
+
+    // standout slides (e.g. "Thank You!") get a full maroon background
+    slides.forEach(function (s) {
+      if (s.classList.contains("standout") && !s.hasAttribute("data-background-color")) {
+        s.setAttribute("data-background-color", "#750014");
+        Reveal.syncSlide(s);
       }
     });
 
     function toggleChrome() {
-      var onTitle = titleIdx > -1 && Reveal.getCurrentSlide() === slides[titleIdx];
+      var cur = Reveal.getCurrentSlide();
+      var onTitle = titleIdx > -1 && cur === slides[titleIdx];
       document.body.classList.toggle("on-title-slide", onTitle);
+      document.body.classList.toggle("on-standout-slide", cur.classList.contains("standout"));
     }
 
     Reveal.on("slidechanged", toggleChrome);

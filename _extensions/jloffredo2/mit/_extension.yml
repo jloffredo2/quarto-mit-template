@@ -8,7 +8,6 @@ contributes:
       theme: [default, mit.scss]
       slide-number: c/t
       footer: "Joseph R. Loffredo, MIT"
-      logo: assets/mit-logo-red.svg
       include-in-header: fonts.html
       include-after-body: mit-nav.html
       width: 1050
@@ -19,3 +18,14 @@ contributes:
       link-external-newwindow: true
       transition: none
       background-transition: none
+    beamer:
+      pdf-engine: xelatex
+      slide-level: 2
+      aspectratio: 169
+      theme: metropolis
+      themeoptions:
+        - progressbar=frametitle
+        - block=fill
+      include-in-header: beamer-header.tex
+      filters:
+        - mit-filters.lua

@@ -2,11 +2,14 @@
 title: "Presentation Title"
 subtitle: "A Subtitle or Paper Title"
 author: "Joseph R. Loffredo"
-institute: "Massachusetts Institute of Technology"
 date: today
 date-format: "MMMM D, YYYY"
-format: mit-revealjs
-# For an offline-safe, single-file version (fonts embedded), render with:
+format:
+  mit-revealjs: default
+  mit-beamer: default
+# quarto render template.qmd                 -> revealjs (default)
+# quarto render template.qmd --to mit-beamer -> PDF
+# For an offline-safe, single-file revealjs version (fonts embedded):
 #   quarto render template.qmd -M embed-resources:true -M html-math-method:mathml
 ---
 
@@ -69,6 +72,10 @@ $$
 ## A Plain Slide {.plain}
 
 No header bar — useful for full-bleed figures or when you want a quieter look.
+
+## Thank You! {.standout}
+
+Joseph R. Loffredo (`loffredo@mit.edu`)
 
 # Appendix {#appendix}
 
