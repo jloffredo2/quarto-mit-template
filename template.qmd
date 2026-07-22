@@ -1,0 +1,93 @@
+---
+title: "Presentation Title"
+subtitle: "A Subtitle or Paper Title"
+author: "Joseph R. Loffredo"
+institute: "Massachusetts Institute of Technology"
+date: today
+date-format: "MMMM D, YYYY"
+format: mit-revealjs
+# For an offline-safe, single-file version (fonts embedded), render with:
+#   quarto render template.qmd -M embed-resources:true -M html-math-method:mathml
+---
+
+## Bullets
+
+- First point in Neue Haas Grotesk on a white background
+- Slide titles sit in a `#750014` bar, set in Roboto Serif
+- Links look like this: [Quarto presentations](https://quarto.org/docs/presentations/)
+
+## Incremental Bullets
+
+::: {.incremental}
+- Appears first
+- Then this
+- Then this
+:::
+
+## Two Columns
+
+:::: {.columns}
+
+::: {.column width="55%"}
+- Key result goes here
+- Another supporting point
+:::
+
+::: {.column width="45%"}
+> A blockquote, styled with a maroon rule — useful for quotes from cases, bills, or interviews.
+:::
+
+::::
+
+## Code and Output
+
+```{r}
+#| echo: true
+#| fig-height: 4.5
+plot(pressure, pch = 19, col = "#750014")
+```
+
+## Math
+
+Vote share for candidate $c$ in district $d$:
+
+$$
+y_{cd} = \alpha_d + \beta \cdot \text{incumbency}_{cd} + \varepsilon_{cd}
+$$
+
+# Section Divider
+
+## Main Results {#main-results}
+
+- Headline finding one
+- Headline finding two
+
+. . .
+
+[Estimates](#app-estimates){.button} [Robustness](#app-robustness){.button}
+
+## A Plain Slide {.plain}
+
+No header bar — useful for full-bleed figures or when you want a quieter look.
+
+# Appendix {#appendix}
+
+## Backup Slides {#appendix-toc}
+
+**Main Results**: [Estimates](#app-estimates){.button} [Robustness](#app-robustness){.button}
+
+## Full Estimates {#app-estimates}
+
+| Model | Estimate | SE |
+|-------|---------:|---:|
+| OLS | 0.42 | 0.08 |
+| 2SLS | 0.38 | 0.11 |
+
+[Return](#main-results){.button} [Appendix TOC](#appendix-toc){.button}
+
+## Robustness {#app-robustness}
+
+- Alternative specification one
+- Alternative specification two
+
+[Return](#main-results){.button} [Appendix TOC](#appendix-toc){.button}

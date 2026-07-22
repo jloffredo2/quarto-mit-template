@@ -1,0 +1,21 @@
+title: MIT Reveal.js Template
+author: Joseph R. Loffredo
+version: 1.0.0
+quarto-required: ">=1.4"
+contributes:
+  formats:
+    revealjs:
+      theme: [default, mit.scss]
+      slide-number: c/t
+      footer: "Joseph R. Loffredo, MIT"
+      logo: assets/mit-logo-red.svg
+      include-in-header: fonts.html
+      include-after-body: mit-nav.html
+      width: 1050
+      height: 700
+      margin: 0.05
+      center: false
+      html-math-method: mathjax
+      link-external-newwindow: true
+      transition: none
+      background-transition: none

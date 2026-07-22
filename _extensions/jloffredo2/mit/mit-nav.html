@@ -1,0 +1,56 @@
+<script>
+// Beamer-style numbering: title slide unnumbered, main slides n/N (N excludes
+// appendix), appendix slides A-1, A-2, ... (appendixnumberbeamer equivalent).
+// Appendix starts at the slide with id "appendix" or class "appendix".
+// Implemented as a custom Reveal slideNumber function so it can't be
+// overwritten by reveal's built-in numbering.
+(function () {
+  function setup() {
+    var slides = Reveal.getSlides();
+    var titleIdx = slides.findIndex(function (s) { return s.id === "title-slide"; });
+    var appendixIdx = slides.findIndex(function (s) {
+      return s.id === "appendix" || s.classList.contains("appendix");
+    });
+
+    Reveal.configure({
+      slideNumber: function (slide) {
+        var idx = slides.indexOf(slide);
+        if (idx === -1 || idx === titleIdx) return [""];
+        var mainEnd = appendixIdx === -1 ? slides.length : appendixIdx;
+        var mainTotal = mainEnd - (titleIdx > -1 && titleIdx < mainEnd ? 1 : 0);
+        if (appendixIdx !== -1 && idx >= appendixIdx) {
+          return ["A-" + (idx - appendixIdx + 1)];
+        }
+        var n = idx - (titleIdx > -1 && titleIdx < idx ? 1 : 0) + 1;
+        return [n + "/" + mainTotal];
+      }
+    });
+
+    function toggleChrome() {
+      var onTitle = titleIdx > -1 && Reveal.getCurrentSlide() === slides[titleIdx];
+      document.body.classList.toggle("on-title-slide", onTitle);
+    }
+
+    Reveal.on("slidechanged", toggleChrome);
+    toggleChrome();
+  }
+
+  function init() {
+    if (typeof Reveal === "undefined" || !Reveal.isReady) {
+      window.setTimeout(init, 50);
+      return;
+    }
+    if (Reveal.isReady()) {
+      setup();
+    } else {
+      Reveal.on("ready", setup);
+    }
+  }
+
+  if (document.readyState === "complete") {
+    init();
+  } else {
+    window.addEventListener("load", init);
+  }
+})();
+</script>
