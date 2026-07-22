@@ -1,0 +1,4 @@
+*.pdf
+*.html
+*_files/
+tools/
