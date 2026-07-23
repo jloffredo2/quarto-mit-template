@@ -21,21 +21,11 @@ $code-color: $mit-maroon;
 
 /*-- scss:rules --*/
 
-// ---- slide title bar (metropolis frametitle) ----
+// ---- slide titles: MIT red Roboto Serif on white ----
 .reveal .slides section > h2 {
-  background: $mit-maroon;
-  color: #fff;
-  margin: 0 0 0.7em 0;
-  padding: 0.32em 0.55em 0.36em 0.55em;
-  font-weight: 500;
-}
-
-// plain slides: maroon title on white, no bar
-.reveal .slides section.plain > h2 {
-  background: transparent;
   color: $mit-maroon;
-  padding-left: 0;
-  padding-right: 0;
+  margin: 0 0 0.6em 0;
+  font-weight: 500;
 }
 
 // ---- section divider slides (level-1 headings) ----

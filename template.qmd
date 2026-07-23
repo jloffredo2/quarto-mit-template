@@ -16,7 +16,7 @@ format:
 ## Bullets
 
 - First point in Neue Haas Grotesk on a white background
-- Slide titles sit in a `#750014` bar, set in Roboto Serif
+- Slide titles are `#750014` Roboto Serif (a maroon bar in the beamer PDF)
 - Links look like this: [Quarto presentations](https://quarto.org/docs/presentations/)
 
 ## Incremental Bullets

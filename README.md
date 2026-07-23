@@ -33,8 +33,8 @@ format:
 
 | Syntax | Result |
 |---|---|
-| `## Title` | content slide with the maroon title bar |
-| `## Title {.plain}` | no title bar (HTML); beamer maps this to its native `plain` frame |
+| `## Title` | content slide: maroon Roboto Serif title (HTML), maroon title bar (PDF) |
+| `## Title {.plain}` | beamer's native `plain` frame (no footline); no effect in HTML |
 | `# Section` | metropolis section page: left title over a maroon/gray rule |
 | `## Thank You! {.standout}` | full-maroon closing slide, centered white serif title |
 | `# Appendix {#appendix}` | starts the appendix: slides after it are numbered A-1, A-2, … |
