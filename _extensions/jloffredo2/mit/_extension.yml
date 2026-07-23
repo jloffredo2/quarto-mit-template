@@ -10,9 +10,9 @@ contributes:
       footer: "Joseph R. Loffredo, MIT"
       include-in-header: fonts.html
       include-after-body: mit-nav.html
-      width: 1280
-      height: 720
-      margin: 0.05
+      width: 100%
+      height: 100%
+      margin: 0.04
       center: false
       html-math-method: mathjax
       link-external-newwindow: true
