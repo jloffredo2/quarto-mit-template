@@ -238,6 +238,12 @@ body.on-title-slide {
   display: flex !important;
 }
 
+// ---- alert text ([text]{.alert} -> beamer \alert) ----
+.reveal .alert {
+  color: $mit-maroon;
+  font-weight: 600;
+}
+
 // ---- general polish ----
 .reveal blockquote {
   border-left: 4px solid $mit-maroon;

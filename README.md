@@ -61,6 +61,13 @@ Give slides IDs and link with `.button` pills — in HTML they're styled like `\
 
 The appendix divider must have id `appendix` (or class `.appendix`).
 
+## Other useful syntax
+
+- `[text]{.alert}` — MIT-red emphasis in both formats (beamer `\alert`)
+- `. . .` on its own line — pause/fragment in both formats; `::: {.incremental}` for incremental lists
+- Beamer-only frame options pass through as classes: `{.shrink}` (fit oversized content), `{.allowframebreaks}` (auto-split long frames), `{.t}`/`{.c}`/`{.b}` (vertical alignment)
+- `toc: true` in front matter adds an outline slide after the title in both formats
+
 ## Fonts
 
 - **HTML**: loaded from Adobe Fonts (`use.typekit.net/nck6fpm.css`, same kit as the website) and Google Fonts. Needs internet; falls back to Helvetica Neue / Georgia offline.

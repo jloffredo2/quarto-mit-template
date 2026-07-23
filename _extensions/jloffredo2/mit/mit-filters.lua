@@ -22,6 +22,16 @@ function Code(el)
   end
 end
 
+-- [text]{.alert} -> \alert{text} (pandoc only maps .alert divs, not spans)
+function Span(el)
+  if is_beamer() and el.classes:includes("alert") then
+    local inlines = pandoc.Inlines({ pandoc.RawInline("latex", "\\alert{") })
+    inlines:extend(el.content)
+    inlines:insert(pandoc.RawInline("latex", "}"))
+    return inlines
+  end
+end
+
 function Link(el)
   if is_beamer() and el.classes:includes("button") and el.target:sub(1, 1) == "#" then
     local label = el.target:sub(2)

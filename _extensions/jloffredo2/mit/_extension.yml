@@ -20,6 +20,7 @@ contributes:
       background-transition: none
     beamer:
       pdf-engine: xelatex
+      navigation: empty
       slide-level: 2
       aspectratio: 169
       theme: metropolis
