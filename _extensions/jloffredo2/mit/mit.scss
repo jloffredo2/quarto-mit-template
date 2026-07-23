@@ -13,7 +13,7 @@ $presentation-heading-font: "Roboto Serif", Georgia, "Times New Roman", serif;
 $presentation-heading-color: $body-color;
 $presentation-heading-font-weight: 500;
 
-$presentation-font-size-root: 34px;
+$presentation-font-size-root: 40px;
 $presentation-h2-font-size: 1.25em;
 
 $code-block-bg: #f6f6f4;
@@ -226,6 +226,16 @@ body.on-title-slide {
 .reveal ol > li::marker {
   color: $mit-maroon;
   font-weight: 600;
+}
+
+
+// reveal sets inline display:block on the active slide, which defeats the
+// flex vertical-centering of full-height slides; reassert it (only on
+// .present so hidden slides keep their inline display:none)
+.reveal .slides section.standout.present,
+.reveal .slides section#title-slide.present,
+.reveal .slides section.present:not(#title-slide):has(> h1) {
+  display: flex !important;
 }
 
 // ---- general polish ----
