@@ -21,7 +21,7 @@
 
 % ----- Metropolis customization ----- %
 \setbeamercolor{normal text}{bg=white,fg=black}
-\setbeamercolor{frametitle}{bg=MITDarkRed,fg=white}
+\setbeamercolor{frametitle}{bg=white,fg=MITDarkRed}
 \setbeamercolor{palette primary}{bg=MITDarkRed,fg=white}
 \setbeamercolor{palette secondary}{bg=MITMedRed,fg=white}
 \setbeamercolor{palette tertiary}{bg=MITLightRed,fg=white}
@@ -55,17 +55,17 @@
 % After \appendix the whole footline template is swapped for the A-n version
 % (same approach as redefining the footline after \appendix in a plain
 % metropolis deck). Standout frames suppress the footline.
-\setbeamercolor{footline}{bg=white,fg=black}
+\setbeamercolor{footline}{bg=MITDarkRed,fg=white}
 \makeatletter
 \newcommand{\mit@footline}[1]{%
   \ifbool{metropolis@standout}{}{%
   \leavevmode%
   \hbox{%
   \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.5ex,left,leftskip=2ex]{footline}%
-    \usebeamerfont{page number in head/foot}Joseph R. Loffredo, MIT%
+    \usebeamerfont{page number in head/foot}\textbf{Joseph R. Loffredo, MIT}%
   \end{beamercolorbox}%
   \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.5ex,right,rightskip=2ex]{footline}%
-    \usebeamerfont{page number in head/foot}\textcolor{MITDarkRed}{\textbf{#1}}%
+    \usebeamerfont{page number in head/foot}\textbf{#1}%
   \end{beamercolorbox}}%
   \vskip0pt%
   }%
