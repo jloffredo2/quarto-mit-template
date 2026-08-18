@@ -22,10 +22,32 @@ $code-color: $mit-maroon;
 /*-- scss:rules --*/
 
 // ---- slide titles: MIT red Roboto Serif on white ----
+// (beamer: frametitle is fg=MITDarkRed on bg=white with a progress rule under it)
 .reveal .slides section > h2 {
   color: $mit-maroon;
   margin: 0 0 0.6em 0;
+  padding-bottom: 0.18em;
   font-weight: 500;
+  position: relative;
+
+  // metropolis progressbar=frametitle: maroon fill to deck progress, gray after
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      $mit-maroon 0 var(--mit-progress, 0%),
+      #d9d9d9 var(--mit-progress, 0%) 100%
+    );
+  }
+}
+
+.reveal .slides section.standout > h2::after {
+  display: none;
 }
 
 // ---- section divider slides (level-1 headings) ----
@@ -148,35 +170,81 @@ body.on-standout-slide {
   }
 }
 
-// ---- footer: name/institution lower left ----
-.reveal .footer {
-  text-align: left !important;
-  left: 18px !important;
-  right: auto !important;
-  width: auto !important;
-  bottom: 12px !important;
-  font-family: $font-family-sans-serif !important;
-  font-size: 16px !important;
-  color: $body-color !important;
+// ---- footer: full-width maroon bar, white bold text (matches the beamer footline) ----
+// Bar height and type scale with the window (reveal's own chrome is fixed-position,
+// so it does not get reveal's slide scaling); --mit-footer-h drives every offset
+// that has to clear the bar.
+:root {
+  --mit-footer-h: clamp(26px, 5.5vh, 52px);
+  --mit-footer-font: clamp(10px, 2.2vh, 20px);
+  --mit-footer-pad: clamp(10px, 1.8vw, 32px);
 }
 
-// ---- slide number lower right, maroon, no pill ----
+.reveal .footer {
+  display: flex !important;
+  align-items: center;
+  text-align: left !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  bottom: 0 !important;
+  height: var(--mit-footer-h);
+  padding: 0 var(--mit-footer-pad);
+  background: $mit-maroon;
+  font-family: $font-family-sans-serif !important;
+  font-size: var(--mit-footer-font) !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  z-index: 5;
+
+  a {
+    color: #fff !important;
+    text-decoration: underline;
+  }
+}
+
+// ---- slide number: white bold, sitting in the footer bar at the right ----
 .reveal .slide-number {
+  display: flex !important;
+  align-items: center;
   left: auto !important;
-  right: 18px !important;
+  right: var(--mit-footer-pad) !important;
   top: auto !important;
-  bottom: 12px !important;
+  bottom: 0 !important;
+  height: var(--mit-footer-h);
   background-color: transparent !important;
   font-family: $font-family-sans-serif !important;
-  font-size: 16px !important;
-  color: $mit-maroon !important;
+  font-size: var(--mit-footer-font) !important;
+  color: #fff !important;
   font-weight: 700;
   padding: 0;
+  z-index: 6;
 }
 
-// hide the slide-menu hamburger (overlaps the footer; press "m" for the menu)
+// ---- control panel: navigation arrows, menu and chalkboard buttons, lifted
+//      above the footer bar so they never sit on top of it ----
+.reveal .controls {
+  bottom: calc(var(--mit-footer-h) + 8px) !important;
+  right: 12px !important;
+  color: $mit-maroon;
+  z-index: 6;
+}
+
 .reveal .slide-menu-button {
-  display: none !important;
+  display: block !important;
+  left: 12px !important;
+  bottom: calc(var(--mit-footer-h) + 6px) !important;
+  z-index: 6;
+  opacity: 0.85;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.reveal .slide-chalkboard-buttons {
+  bottom: calc(var(--mit-footer-h) + 6px) !important;
+  z-index: 6;
 }
 
 // hide chrome on the title slide (toggled by mit-nav.html)

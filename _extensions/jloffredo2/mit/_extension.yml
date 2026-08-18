@@ -8,6 +8,14 @@ contributes:
       theme: [default, mit.scss]
       slide-number: c/t
       footer: "Joseph R. Loffredo, MIT"
+      controls: true
+      controls-layout: bottom-right
+      controls-back-arrows: faded
+      controls-tutorial: false
+      menu:
+        side: left
+        numbers: true
+      progress: true
       include-in-header: fonts.html
       include-after-body: mit-nav.html
       width: 100%

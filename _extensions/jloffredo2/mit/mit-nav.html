@@ -57,6 +57,10 @@
       var onTitle = titleIdx > -1 && cur === slides[titleIdx];
       document.body.classList.toggle("on-title-slide", onTitle);
       document.body.classList.toggle("on-standout-slide", cur.classList.contains("standout"));
+
+      // drives the rule under each slide title (metropolis progressbar=frametitle)
+      var pct = Math.round(Reveal.getProgress() * 100);
+      document.documentElement.style.setProperty("--mit-progress", pct + "%");
     }
 
     Reveal.on("slidechanged", toggleChrome);
