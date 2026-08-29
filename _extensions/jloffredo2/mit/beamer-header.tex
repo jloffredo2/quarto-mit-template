@@ -56,13 +56,16 @@
 % (same approach as redefining the footline after \appendix in a plain
 % metropolis deck). Standout frames suppress the footline.
 \setbeamercolor{footline}{bg=MITDarkRed,fg=white}
+% Footer text: set `footer:` in the document YAML (mit-filters.lua turns it into
+% a \renewcommand); this is the fallback when the document doesn't set one.
+\providecommand{\mitfootertext}{Joseph R. Loffredo (MIT)}
 \makeatletter
 \newcommand{\mit@footline}[1]{%
   \ifbool{metropolis@standout}{}{%
   \leavevmode%
   \hbox{%
   \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.5ex,left,leftskip=2ex]{footline}%
-    \usebeamerfont{page number in head/foot}\textbf{Joseph R. Loffredo, MIT}%
+    \usebeamerfont{page number in head/foot}\textbf{\mitfootertext}%
   \end{beamercolorbox}%
   \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.5ex,dp=1.5ex,right,rightskip=2ex]{footline}%
     \usebeamerfont{page number in head/foot}\textbf{#1}%

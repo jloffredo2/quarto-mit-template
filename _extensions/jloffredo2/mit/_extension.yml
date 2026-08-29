@@ -7,7 +7,7 @@ contributes:
     revealjs:
       theme: [default, mit.scss]
       slide-number: c/t
-      footer: "Joseph R. Loffredo, MIT"
+      footer: "Joseph R. Loffredo (MIT)"   # override with `footer:` in the doc YAML
       controls: true
       controls-layout: bottom-right
       controls-back-arrows: faded

@@ -64,3 +64,96 @@ function Header(el)
     return { pandoc.RawBlock("latex", "\\global\\mitappendixpendingtrue"), el }
   end
 end
+
+-- append raw latex to header-includes
+local function add_header(meta, latex)
+  local hi = meta["header-includes"]
+  if hi == nil then
+    hi = pandoc.MetaList({})
+  elseif hi.t ~= "MetaList" then
+    hi = pandoc.MetaList({ hi })
+  end
+  hi:insert(pandoc.MetaBlocks({ pandoc.RawBlock("latex", latex) }))
+  meta["header-includes"] = hi
+end
+
+local function to_latex(inlines)
+  return (pandoc.write(pandoc.Pandoc({ pandoc.Plain(inlines) }), "latex"):gsub("%s+$", ""))
+end
+
+-- Per-author affiliations on the beamer title page. Quarto keeps the parsed
+-- authors in `by-author` (name + affiliations), but pandoc's \author only gets
+-- the names, so affiliations show up in HTML and silently vanish from the PDF.
+-- Rebuilding meta.author doesn't stick (quarto reassembles it after this filter)
+-- and header-includes lands before \author, so redefine it at \begin{document},
+-- which still runs before the title frame.
+local function authors_with_affiliations(meta)
+  local by = meta["by-author"]
+  if by == nil then
+    return
+  end
+
+  local parts = {}
+  local any = false
+  for _, a in ipairs(by) do
+    if a.name == nil then
+      return -- unexpected shape; leave pandoc's \author alone
+    end
+    local latex = to_latex(pandoc.Inlines(a.name.literal or a.name))
+
+    local affs = {}
+    for _, aff in ipairs(a.affiliations or {}) do
+      if aff.name ~= nil then
+        affs[#affs + 1] = pandoc.utils.stringify(aff.name)
+      end
+    end
+
+    if #affs > 0 then
+      any = true
+      -- each author is its own top-aligned box, else the \\ inside an \and
+      -- column staggers the names and affiliations onto mismatched lines
+      latex = "\\begin{tabular}[t]{@{}l@{}}" .. latex ..
+          "\\\\{\\footnotesize\\color{MITFooterGray}" ..
+          to_latex(pandoc.Inlines({ pandoc.Str(table.concat(affs, ", ")) })) ..
+          "}\\end{tabular}"
+    end
+    parts[#parts + 1] = latex
+  end
+
+  if any then
+    add_header(meta, "\\AtBeginDocument{\\author{" ..
+      table.concat(parts, " \\and ") .. "}}")
+  end
+end
+
+-- `footer:` in the document YAML drives the beamer footline too (revealjs uses
+-- the key natively). Emitted as provide+renew so it wins regardless of whether
+-- it lands before or after beamer-header.tex's \providecommand fallback.
+local function footer_command(meta)
+  if meta.footer == nil then
+    return
+  end
+
+  local footer = meta.footer
+  local inlines
+  if type(footer) == "string" then
+    inlines = pandoc.Inlines({ pandoc.Str(footer) })
+  elseif footer.t == "MetaBlocks" then
+    inlines = pandoc.utils.blocks_to_inlines(footer)
+  else
+    inlines = pandoc.Inlines(footer)
+  end
+
+  -- run it through the latex writer so markup and special characters are handled
+  add_header(meta, "\\providecommand{\\mitfootertext}{}%\n" ..
+    "\\renewcommand{\\mitfootertext}{" .. to_latex(inlines) .. "}")
+end
+
+function Meta(meta)
+  if not is_beamer() then
+    return nil
+  end
+  footer_command(meta)
+  authors_with_affiliations(meta)
+  return meta
+end

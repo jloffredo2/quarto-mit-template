@@ -4,6 +4,14 @@ subtitle: "A Subtitle or Paper Title"
 author: "Joseph R. Loffredo"
 date: today
 date-format: "MMMM D, YYYY"
+# Footer text, bottom-left of every slide (both formats).
+# For coauthored work, e.g.: footer: "Loffredo & Coauthor (MIT)"
+footer: "Joseph R. Loffredo (MIT)"
+# Closing slide (the .standout slide at the end of the deck).
+# ("thanks" is reserved by Quarto, hence "closing")
+closing:
+  title: "Thank You!"
+  contact: "Joseph R. Loffredo (`loffredo@mit.edu`)"
 format:
   mit-revealjs: default
   mit-beamer: default
@@ -74,9 +82,9 @@ $$
 
 No header bar — useful for full-bleed figures or when you want a quieter look.
 
-## Thank You! {.standout}
+## {{< meta closing.title >}} {#thanks .standout}
 
-Joseph R. Loffredo (`loffredo@mit.edu`)
+{{< meta closing.contact >}}
 
 # Appendix {#appendix}
 
