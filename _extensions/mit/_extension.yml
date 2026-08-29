@@ -24,6 +24,7 @@ contributes:
       height: 100%
       margin: 0.04
       center: false
+      auto-stretch: false
       html-math-method: mathjax
       link-external-newwindow: true
       transition: none

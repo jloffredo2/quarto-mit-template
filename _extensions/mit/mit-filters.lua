@@ -174,6 +174,39 @@ local function logo_toggle(meta)
   end
 end
 
+-- A slide whose body is just an image: centre it in the frame. Pandoc emits a
+-- bare paragraph, which sits flush left and top; beamer-header.tex bounds the
+-- image's height, and this puts it in the middle of the frame.
+local function is_lone_image(blk)
+  return blk.t == "Para" and #blk.content == 1 and blk.content[1].t == "Image"
+end
+
+local function centred(blk)
+  return {
+    pandoc.RawBlock("latex", "\\vspace*{\\fill}\\begin{center}"),
+    blk,
+    pandoc.RawBlock("latex", "\\end{center}\\vspace*{\\fill}"),
+  }
+end
+
+function Blocks(blocks)
+  if not is_beamer() then
+    return nil
+  end
+  local out, changed = pandoc.List(), false
+  for _, blk in ipairs(blocks) do
+    if is_lone_image(blk) or (blk.t == "Figure" and #blk.caption.long == 0) then
+      out:extend(centred(blk))
+      changed = true
+    else
+      out:insert(blk)
+    end
+  end
+  if changed then
+    return out
+  end
+end
+
 function Meta(meta)
   logo_toggle(meta)
   if not is_beamer() then

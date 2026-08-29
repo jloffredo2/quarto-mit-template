@@ -344,3 +344,17 @@ body.on-title-slide {
   background-position: right 4% bottom 6%;
   background-size: 200px auto;
 }
+
+// ---- Slide images ----
+// A slide whose body is just an image. Reveal's own stretch layout mis-sizes
+// against this theme's percentage slide dimensions (tall figures run off the
+// bottom), so `auto-stretch: false` turns it off in _extension.yml and this
+// sizes the image instead. 78vh leaves room for the slide title and footer.
+.reveal .slides section img {
+  display: block;
+  margin: 0 auto;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 78vh;
+}
