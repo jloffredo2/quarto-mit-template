@@ -22,13 +22,26 @@ function Code(el)
   end
 end
 
--- [text]{.alert} -> \alert{text} (pandoc only maps .alert divs, not spans)
+-- Wrap a span's content in raw latex.
+local function wrap_latex(el, open, close)
+  local inlines = pandoc.Inlines({ pandoc.RawInline("latex", open) })
+  inlines:extend(el.content)
+  inlines:insert(pandoc.RawInline("latex", close))
+  return inlines
+end
+
+--  [text]{.alert} -> \alert{text} (pandoc only maps .alert divs, not spans)
+--  [Fraga 2016]{.cite} -> a small grey parenthetical; the parentheses are
+--  supplied here (and by mit.scss in revealjs) so the source stays clean.
 function Span(el)
-  if is_beamer() and el.classes:includes("alert") then
-    local inlines = pandoc.Inlines({ pandoc.RawInline("latex", "\\alert{") })
-    inlines:extend(el.content)
-    inlines:insert(pandoc.RawInline("latex", "}"))
-    return inlines
+  if not is_beamer() then
+    return nil
+  end
+  if el.classes:includes("alert") then
+    return wrap_latex(el, "\\alert{", "}")
+  end
+  if el.classes:includes("cite") then
+    return wrap_latex(el, "{\\footnotesize\\textcolor{gray}{(", ")}}")
   end
 end
 
@@ -205,6 +218,33 @@ function Blocks(blocks)
   if changed then
     return out
   end
+end
+
+-- ::: {.overlay} ... ::: -> a callout box laid over the whole slide: the frame
+-- is washed back and the content is boxed in the middle, keeping whatever
+-- markdown formatting it carries. Pair it with `. . .` to land it on a click.
+-- pgfinterruptboundingbox keeps the full-page wash from inflating the figure's
+-- bounding box, which would otherwise shove the slide's own content around.
+function Div(el)
+  if not el.classes:includes("overlay") then
+    return nil
+  end
+  if not is_beamer() then
+    return nil
+  end
+  local open = table.concat({
+    "\\begin{tikzpicture}[remember picture,overlay]",
+    "\\begin{pgfinterruptboundingbox}",
+    -- start below the frametitle so the slide keeps its heading
+    "\\fill[white,opacity=0.68] ([yshift=-1.5cm]current page.north west) rectangle (current page.south east);",
+    "\\end{pgfinterruptboundingbox}",
+    "\\node[draw=MITDarkRed,line width=0.5mm,fill=white,inner sep=12pt,align=center,",
+    "      text width=0.70\\paperwidth,at=(current page.center)]{%",
+  }, "\n")
+  local blocks = pandoc.List({ pandoc.RawBlock("latex", open) })
+  blocks:extend(el.content)
+  blocks:insert(pandoc.RawBlock("latex", "};\n\\end{tikzpicture}"))
+  return blocks
 end
 
 function Meta(meta)

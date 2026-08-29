@@ -358,3 +358,36 @@ body.on-title-slide {
   max-width: 100%;
   max-height: 82vh;
 }
+
+// ---- Parenthetical citation: [Fraga 2016]{.cite} ----
+// Matches the beamer form in mit-filters.lua: small, grey, parenthesised.
+.reveal .cite {
+  font-size: 0.7em;
+  color: #6f6f6f;
+
+  &::before { content: "("; }
+  &::after  { content: ")"; }
+}
+
+// ---- ::: {.overlay} : a callout box laid over the whole slide ----
+// Matches the beamer form in mit-filters.lua: the slide washes back and the
+// content sits in a maroon-ruled white box in the middle.
+.reveal .slides section .overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.68);
+  pointer-events: none;
+}
+
+.reveal .slides section .overlay > * {
+  max-width: 70%;
+  margin: 0;
+  padding: 0.6em 1.1em;
+  background: #fff;
+  border: 2px solid $mit-maroon;
+  text-align: center;
+}
