@@ -1,11 +1,28 @@
+% ----- Asset paths ----- %
+% The extension lives at _extensions/mit/ in the template repo (the layout
+% `quarto use template` requires) but installs to _extensions/<org>/mit/ in a
+% consuming project, so resolve both. \graphicspath covers images; fontspec's
+% Path needs a literal, hence the two branches.
+\usepackage{graphicx}
+\graphicspath{{_extensions/mit/assets/}{_extensions/jloffredo2/mit/assets/}}
+
 % ----- Fonts (xelatex): Roboto Serif headings, Neue Haas Grotesk body ----- %
 \usepackage{fontspec}
-\setmainfont{RobotoSerif}[
-  Path = _extensions/jloffredo2/mit/assets/fonts/ ,
-  UprightFont = RobotoSerif-400.ttf ,
-  BoldFont = RobotoSerif-600.ttf ,
-  ItalicFont = RobotoSerif-400-Italic.ttf ,
-]
+\IfFileExists{_extensions/mit/assets/fonts/RobotoSerif-400.ttf}{%
+  \setmainfont{RobotoSerif}[
+    Path = _extensions/mit/assets/fonts/ ,
+    UprightFont = RobotoSerif-400.ttf ,
+    BoldFont = RobotoSerif-600.ttf ,
+    ItalicFont = RobotoSerif-400-Italic.ttf ,
+  ]%
+}{%
+  \setmainfont{RobotoSerif}[
+    Path = _extensions/jloffredo2/mit/assets/fonts/ ,
+    UprightFont = RobotoSerif-400.ttf ,
+    BoldFont = RobotoSerif-600.ttf ,
+    ItalicFont = RobotoSerif-400-Italic.ttf ,
+  ]%
+}
 \IfFontExistsTF{Neue Haas Grotesk Text Pro}{%
   \setsansfont{Neue Haas Grotesk Text Pro}%
 }{%
@@ -48,7 +65,7 @@
 \setbeamerfont{section title}{family=\rmfamily,series=\mdseries,size=\Large}
 
 % MIT lockup on the title page
-\titlegraphic{\hfill\includegraphics[height=1.1cm]{_extensions/jloffredo2/mit/assets/mit-lockup-red.png}}
+\titlegraphic{\hfill\includegraphics[height=1.1cm]{mit-lockup-red.png}}
 
 % ----- Footer: name/institution left, MIT logo center, page number right ----- %
 % Main frames show n/N (title frame is frame 1: hidden and excluded from N).
