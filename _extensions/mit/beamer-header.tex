@@ -70,6 +70,17 @@
 % rest, and mit-filters.lua centres the result.
 \setkeys{Gin}{width=\linewidth,height=0.85\textheight,keepaspectratio}
 
+% ----- Blockquote: maroon left rule, matching mit.scss's .reveal blockquote
+% (4px maroon border, 0.6em padding, #444 text, upright). Pandoc renders a
+% markdown blockquote as `quote`, so redefining that is enough.
+\usepackage{framed}
+\definecolor{MITQuoteText}{HTML}{444444}
+\renewenvironment{quote}{%
+  \def\FrameCommand{{\color{MITDarkRed}\vrule width 2.5pt}\hspace{9pt}}%
+  \MakeFramed{\advance\hsize-\width\FrameRestore}%
+  \color{MITQuoteText}\upshape\raggedright%
+}{\par\endMakeFramed}
+
 % MIT lockup on the title page
 \titlegraphic{\hfill\includegraphics[height=1.1cm]{mit-lockup-red.png}}
 
