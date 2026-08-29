@@ -7,6 +7,8 @@ date-format: "MMMM D, YYYY"
 # Footer text, bottom-left of every slide (both formats).
 # For coauthored work, e.g.: footer: "Loffredo & Coauthor (MIT)"
 footer: "Joseph R. Loffredo (MIT)"
+# MIT lockup on the title slide; set false for multi-institution decks.
+mit-logo: true
 # Closing slide (the .standout slide at the end of the deck).
 # ("thanks" is reserved by Quarto, hence "closing")
 closing:

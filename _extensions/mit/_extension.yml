@@ -18,6 +18,8 @@ contributes:
       progress: true
       include-in-header: fonts.html
       include-after-body: mit-nav.html
+      filters:
+        - mit-filters.lua
       width: 100%
       height: 100%
       margin: 0.04

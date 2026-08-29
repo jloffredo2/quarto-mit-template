@@ -66,14 +66,14 @@ function Header(el)
 end
 
 -- append raw latex to header-includes
-local function add_header(meta, latex)
+local function add_header(meta, raw, format)
   local hi = meta["header-includes"]
   if hi == nil then
     hi = pandoc.MetaList({})
   elseif hi.t ~= "MetaList" then
     hi = pandoc.MetaList({ hi })
   end
-  hi:insert(pandoc.MetaBlocks({ pandoc.RawBlock("latex", latex) }))
+  hi:insert(pandoc.MetaBlocks({ pandoc.RawBlock(format or "latex", raw) }))
   meta["header-includes"] = hi
 end
 
@@ -149,9 +149,35 @@ local function footer_command(meta)
     "\\renewcommand{\\mitfootertext}{" .. to_latex(inlines) .. "}")
 end
 
+-- `mit-logo: false` drops the MIT lockup from the title slide (useful when the
+-- deck is coauthored across institutions). Defaults to showing it.
+local function logo_toggle(meta)
+  local v = meta["mit-logo"]
+  if v == nil then
+    return
+  end
+  local show = v
+  if type(v) ~= "boolean" then
+    show = pandoc.utils.stringify(v) ~= "false"
+  end
+  if show then
+    return
+  end
+
+  if is_beamer() then
+    -- lands after beamer-header.tex's \titlegraphic, so this wins
+    add_header(meta, "\\titlegraphic{}")
+  else
+    add_header(meta,
+      "<style>.reveal .slides section#title-slide { background-image: none !important; }</style>",
+      "html")
+  end
+end
+
 function Meta(meta)
+  logo_toggle(meta)
   if not is_beamer() then
-    return nil
+    return meta
   end
   footer_command(meta)
   authors_with_affiliations(meta)
