@@ -68,6 +68,13 @@ function Header(el)
     el.content = pandoc.Inlines({})
     return { el, title_para }
   end
+  -- ## Title {.plain}: pandoc's [plain] only drops the footline, so metropolis
+  -- still sets the frametitle and its progress rule. Blank the header to leave
+  -- the frame genuinely bare; the text stays as the slide's identifier.
+  if el.level == 2 and el.classes:includes("plain") then
+    el.content = pandoc.Inlines({})
+    return el
+  end
   if el.level == 1 and
       (el.identifier == "appendix" or el.classes:includes("appendix")) then
     -- \appendix must run between frames, but pandoc wraps loose blocks into

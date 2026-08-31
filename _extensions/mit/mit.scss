@@ -394,6 +394,23 @@ body.on-title-slide {
   width: 100%;
 }
 
+// ---- ## Title {.plain} : a slide with no heading chrome ----
+// mit-filters.lua blanks the frametitle for beamer; hiding the heading here
+// keeps a plain slide bare in revealjs too.
+.reveal .slides section.plain > h2:first-child {
+  display: none;
+}
+
+// Beamer's [plain] drops the footline too. :has() limits this to the slide
+// actually on screen, so every other slide keeps its footer and progress rule.
+// Browsers without :has() simply keep the footer, which is a safe fallback.
+.reveal:has(.slides section.present.plain) .footer,
+.reveal:has(.slides section.present.plain) .progress {
+  // !important because the .footer rule above sets display: flex !important,
+  // the same way the standout slide's footer rule has to.
+  display: none !important;
+}
+
 // ---- ::: {.overlay} : a callout box laid over the whole slide ----
 // Matches the beamer form in mit-filters.lua: the slide washes back and the
 // content sits in a maroon-ruled white box in the middle.
