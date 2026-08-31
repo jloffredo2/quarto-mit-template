@@ -3,6 +3,8 @@
 $mit-maroon: #750014;
 $mit-maroon-hover: #8f1a2e;
 $mit-gray: #6f6f6f;
+// beamer-header.tex: \setbeamercolor{block title}{bg=MITMedRed}
+$mit-med-red: #c19ba1;
 
 $body-bg: #ffffff;
 $body-color: #1a1a1a;
@@ -369,6 +371,29 @@ body.on-title-slide {
   &::after  { content: ")"; }
 }
 
+// ---- chunk figures scale to the slide ----
+// An SVG carries an intrinsic size (svglite writes inches), which browsers use
+// in preference to the width attribute, so a plot would otherwise sit at ~960px
+// no matter how much room the slide had. Upscaling is lossless for vector.
+// object-fit keeps the aspect ratio when max-height is the binding constraint.
+.reveal .slides section .cell-output-display img {
+  width: 100%;
+  height: auto;
+  max-height: 78vh;
+  object-fit: contain;
+}
+
+// r-stack lays its beats out as grid items, which shrink to fit their content;
+// without this the figure inside a beat never sees the slide's full width.
+.reveal .slides section .r-stack > *,
+.reveal .slides section .r-stack .cell,
+.reveal .slides section .r-stack .cell-output-display,
+.reveal .slides section .r-stack .quarto-figure,
+.reveal .slides section .r-stack figure,
+.reveal .slides section .r-stack figure > p {
+  width: 100%;
+}
+
 // ---- ::: {.overlay} : a callout box laid over the whole slide ----
 // Matches the beamer form in mit-filters.lua: the slide washes back and the
 // content sits in a maroon-ruled white box in the middle.
@@ -383,11 +408,58 @@ body.on-title-slide {
   pointer-events: none;
 }
 
-.reveal .slides section .overlay > * {
+.reveal .slides section .overlay > .overlay-box {
   max-width: 70%;
   margin: 0;
   padding: 0.6em 1.1em;
   background: #fff;
   border: 2px solid $mit-maroon;
   text-align: center;
+}
+
+.reveal .slides section .overlay-box > :first-child {
+  margin-top: 0;
+}
+
+.reveal .slides section .overlay-box > :last-child {
+  margin-bottom: 0;
+}
+
+// Numbered and bulleted content reads badly centred: the markers stop lining
+// up. The box itself stays centred on the slide.
+.reveal .slides section .overlay-box ol,
+.reveal .slides section .overlay-box ul {
+  text-align: left;
+  display: inline-block;
+}
+
+// ---- ::: {.block title="..."} : beamer's block environment ----
+// Paired with block_div() in mit-filters.lua, which emits \begin{block}{...}
+// for beamer and supplies the .block-title element here.
+.reveal .slides section .block {
+  margin: 0.7em 0;
+  border: 1px solid $mit-med-red;
+}
+
+.reveal .slides section .block > .block-title {
+  background: $mit-med-red;
+  color: #000;
+  font-weight: 600;
+  padding: 0.1em 0.5em;
+}
+
+.reveal .slides section .block > :not(.block-title) {
+  margin: 0.45em 0.5em;
+}
+
+// ---- ::: {.stack} / ::: {.beat} : successive overlays on one slide ----
+// The stack sits below the frame title with no slack, so cap its images a
+// little tighter than a lone image and centre the beats on each other.
+.reveal .slides section .r-stack {
+  align-items: center;
+  justify-items: center;
+}
+
+.reveal .slides section .r-stack img {
+  max-height: 74vh;
 }

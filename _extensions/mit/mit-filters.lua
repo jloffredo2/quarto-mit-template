@@ -220,30 +220,112 @@ function Blocks(blocks)
   end
 end
 
+-- ::: {.stack} wrapping ::: {.beat} blocks -> successive overlays on ONE
+-- slide: \only<n> in beamer, an .r-stack of fragments in revealjs. Use it when
+-- a later beat should replace an earlier one in place (e.g. swapping figures)
+-- rather than advancing to a new frame.
+local function stack_div(el)
+  local beats = pandoc.List()
+  for _, blk in ipairs(el.content) do
+    if blk.t == "Div" and blk.classes:includes("beat") then
+      beats:insert(blk)
+    end
+  end
+  if #beats == 0 then
+    return nil
+  end
+
+  local out = pandoc.List()
+  if is_beamer() then
+    for i, beat in ipairs(beats) do
+      out:insert(pandoc.RawBlock("latex", "\\only<" .. i .. ">{%"))
+      out:extend(beat.content)
+      out:insert(pandoc.RawBlock("latex", "}"))
+    end
+    return out
+  end
+
+  -- revealjs: stack them, and make every beat after the first a fragment
+  for i, beat in ipairs(beats) do
+    local classes = i > 1 and { "fragment" } or {}
+    out:insert(pandoc.Div(beat.content, pandoc.Attr("", classes)))
+  end
+  return pandoc.Div(out, pandoc.Attr("", { "r-stack" }))
+end
+
 -- ::: {.overlay} ... ::: -> a callout box laid over the whole slide: the frame
 -- is washed back and the content is boxed in the middle, keeping whatever
 -- markdown formatting it carries. Pair it with `. . .` to land it on a click.
 -- pgfinterruptboundingbox keeps the full-page wash from inflating the figure's
 -- bounding box, which would otherwise shove the slide's own content around.
+--  ::: {.block title="..."} : beamer's block environment, and in revealjs a
+--  titled box that mit.scss paints to match \setbeamercolor{block title}.
+--  The title is parsed as markdown so it may carry emphasis.
+local function block_div(el)
+  local title = el.attributes["title"]
+  local title_inlines = title
+    and pandoc.utils.blocks_to_inlines(pandoc.read(title, "markdown").blocks)
+    or pandoc.Inlines({})
+
+  if is_beamer() then
+    local open = pandoc.Para(pandoc.Inlines({ pandoc.RawInline("latex", "\\begin{block}{") }))
+    open.content:extend(title_inlines)
+    open.content:insert(pandoc.RawInline("latex", "}"))
+    local blocks = pandoc.List({ open })
+    blocks:extend(el.content)
+    blocks:insert(pandoc.RawBlock("latex", "\\end{block}"))
+    return blocks
+  end
+
+  -- revealjs: hoist the attribute into a real element so CSS can style it
+  -- (left as an attribute it would only surface as a browser tooltip).
+  if title then
+    el.attributes["title"] = nil
+    el.content:insert(1, pandoc.Div({ pandoc.Plain(title_inlines) },
+                                    pandoc.Attr("", { "block-title" })))
+  end
+  return el
+end
+
 function Div(el)
+  if el.classes:includes("stack") then
+    return stack_div(el)
+  end
+  if el.classes:includes("block") then
+    return block_div(el)
+  end
   if not el.classes:includes("overlay") then
     return nil
   end
   if not is_beamer() then
-    return nil
+    -- revealjs: wrap the content in a single box. Styling the overlay's
+    -- children directly would give a separate box to each block, so an
+    -- overlay holding (say) a lead-in line and a list would split in two.
+    el.content = pandoc.Blocks({
+      pandoc.Div(el.content, pandoc.Attr("", { "overlay-box" })),
+    })
+    return el
   end
   local open = table.concat({
     "\\begin{tikzpicture}[remember picture,overlay]",
     "\\begin{pgfinterruptboundingbox}",
     -- start below the frametitle so the slide keeps its heading
-    "\\fill[white,opacity=0.68] ([yshift=-1.5cm]current page.north west) rectangle (current page.south east);",
+    "\\fill[white,opacity=0.68] ([yshift=-1.15cm]current page.north west) rectangle (current page.south east);",
     "\\end{pgfinterruptboundingbox}",
     "\\node[draw=MITDarkRed,line width=0.5mm,fill=white,inner sep=12pt,align=center,",
     "      text width=0.70\\paperwidth,at=(current page.center)]{%",
+    -- the node reserves a full \baselineskip above the first line but only the
+    -- last line's depth below, which leaves the text sitting low in the box
+    "\\vspace*{-0.5\\baselineskip}%",
   }, "\n")
   local blocks = pandoc.List({ pandoc.RawBlock("latex", open) })
   blocks:extend(el.content)
-  blocks:insert(pandoc.RawBlock("latex", "};\n\\end{tikzpicture}"))
+  -- The picture is an overlay, but the paragraph it forms still occupies a
+  -- line, which shifts the figure underneath relative to the beat before it;
+  -- the negative skip takes that line back. (\smash is not an option here:
+  -- the node holds a paragraph, which an \hbox cannot.)
+  blocks:insert(pandoc.RawBlock("latex",
+    "};\n\\end{tikzpicture}\\vspace*{-1.5\\baselineskip}"))
   return blocks
 end
 
