@@ -319,7 +319,7 @@ function Div(el)
     -- start below the frametitle so the slide keeps its heading
     "\\fill[white,opacity=0.68] ([yshift=-1.15cm]current page.north west) rectangle (current page.south east);",
     "\\end{pgfinterruptboundingbox}",
-    "\\node[draw=MITDarkRed,line width=0.5mm,fill=white,inner sep=12pt,align=center,",
+    "\\node[draw=MITDarkRed,line width=0.5mm,fill=white,inner sep=12pt,align=left,",
     "      text width=0.70\\paperwidth,at=(current page.center)]{%",
     -- the node reserves a full \baselineskip above the first line but only the
     -- last line's depth below, which leaves the text sitting low in the box

@@ -431,7 +431,7 @@ body.on-title-slide {
   padding: 0.6em 1.1em;
   background: #fff;
   border: 2px solid $mit-maroon;
-  text-align: center;
+  text-align: left;
 }
 
 .reveal .slides section .overlay-box > :first-child {
@@ -448,6 +448,32 @@ body.on-title-slide {
 .reveal .slides section .overlay-box ul {
   text-align: left;
   display: inline-block;
+}
+
+// ---- columns that carry a pause (`. . .`) between them ----
+// A pause wraps everything after it in .fragment, so columns 2 and 3 stop being
+// direct .column children of the flex row and stack. Scoped with :has() to rows
+// that actually contain a fragment, so fixed-width column pairs are untouched.
+// Reveal leaves .columns at display:inline inside a slide section here, so the
+// row never forms; state it explicitly for every column row in the deck.
+.reveal .slides section .columns {
+  display: flex !important;
+}
+
+.reveal .slides section .columns:has(> .fragment) {
+  > .column,
+  > .fragment {
+    flex: 1 1 0;
+    width: auto !important;
+  }
+
+  > .fragment {
+    display: flex;
+
+    > .column {
+      width: 100% !important;
+    }
+  }
 }
 
 // ---- ::: {.block title="..."} : beamer's block environment ----

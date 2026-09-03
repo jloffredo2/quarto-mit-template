@@ -65,6 +65,8 @@ The appendix divider must have id `appendix` (or class `.appendix`).
 
 - `[text]{.alert}` — MIT-red emphasis in both formats (beamer `\alert`)
 - `. . .` on its own line — pause/fragment in both formats; `::: {.incremental}` for incremental lists
+- `. . .` between `::: {.column}` blocks inside `::: {.columns}` — reveals the columns one at a time while keeping them side by side (both formats)
+- Annotated equations (beamer only): `\eqnmarkbox[MITDarkRed]{tag}{term}` inside math, then `\annotate[yshift=-0.6em]{below,left}{tag}{label}` in a ```` ```{=latex} ```` block. Needs `tlmgr install annotate-equations`. Wrap it in `::: {.content-visible when-format="beamer"}` and give the HTML build an `\underbrace` version under `unless-format="beamer"`
 - Beamer-only frame options pass through as classes: `{.shrink}` (fit oversized content), `{.allowframebreaks}` (auto-split long frames), `{.t}`/`{.c}`/`{.b}` (vertical alignment)
 - `toc: true` in front matter adds an outline slide after the title in both formats
 
