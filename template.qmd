@@ -13,7 +13,11 @@ mit-logo: true
 # ("thanks" is reserved by Quarto, hence "closing")
 closing:
   title: "Thank You!"
-  contact: "Joseph R. Loffredo (`loffredo@mit.edu`)"
+  # one line each; the trailing backslash is a markdown hard line break
+  contact: |
+    Joseph R. Loffredo\
+    `loffredo@mit.edu`\
+    [joseph-loffredo.com](https://joseph-loffredo.com)
 format:
   mit-revealjs: default
   mit-beamer: default
