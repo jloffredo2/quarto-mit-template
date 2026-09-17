@@ -16,7 +16,7 @@ closing:
   # one line each; the trailing backslash is a markdown hard line break
   contact: |
     Joseph R. Loffredo\
-    `loffredo@mit.edu`\
+    loffredo@mit.edu\
     [joseph-loffredo.com](https://joseph-loffredo.com)
 format:
   mit-revealjs: default
