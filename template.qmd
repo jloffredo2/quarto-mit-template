@@ -1,12 +1,12 @@
 ---
 title: "Presentation Title"
 subtitle: "A Subtitle or Paper Title"
-author: "Joseph R. Loffredo"
+author: "Joe Loffredo"
 date: today
 date-format: "MMMM D, YYYY"
 # Footer text, bottom-left of every slide (both formats).
 # For coauthored work, e.g.: footer: "Loffredo & Coauthor (MIT)"
-footer: "Joseph R. Loffredo (MIT)"
+footer: "Joe Loffredo (MIT)"
 # MIT lockup on the title slide; set false for multi-institution decks.
 mit-logo: true
 # Closing slide (the .standout slide at the end of the deck).
@@ -15,7 +15,7 @@ closing:
   title: "Thank You!"
   # one line each; the trailing backslash is a markdown hard line break
   contact: |
-    Joseph R. Loffredo\
+    **Joe Loffredo**\
     loffredo@mit.edu\
     [joseph-loffredo.com](https://joseph-loffredo.com)
 format:

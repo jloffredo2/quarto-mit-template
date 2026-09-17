@@ -21,7 +21,7 @@ Minimal front matter:
 ---
 title: "My Talk"
 subtitle: "Venue or Paper Title"
-author: "Joseph R. Loffredo"
+author: "Joe Loffredo"
 date: today
 format:
   mit-revealjs: default
@@ -39,7 +39,7 @@ format:
 | `## Thank You! {.standout}` | full-maroon closing slide, centered white serif title |
 | `# Appendix {#appendix}` | starts the appendix: slides after it are numbered A-1, A-2, … |
 
-Footer on every content slide: **Joseph R. Loffredo, MIT** lower left (black), page number lower right (maroon). The title slide, section pages, and standout slides have no footer. Main slides show `n/N` where `N` excludes the title, section pages, standout slides, and the appendix (`appendixnumberbeamer` behavior, replicated in revealjs by `mit-nav.html`).
+Footer on every content slide: **Joe Loffredo (MIT)** lower left, page number lower right (white bold on a maroon bar). The title slide, section pages, and standout slides have no footer. Main slides show `n/N` where `N` excludes the title, section pages, standout slides, and the appendix (`appendixnumberbeamer` behavior, replicated in revealjs by `mit-nav.html`).
 
 ## Appendix navigation (beamer gotobutton workflow)
 

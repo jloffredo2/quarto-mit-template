@@ -67,6 +67,9 @@
 \setbeamerfont{subtitle}{family=\rmfamily,series=\mdseries,size=\large}
 \setbeamerfont{frametitle}{family=\rmfamily,series=\mdseries,size=\large}
 \setbeamerfont{section title}{family=\rmfamily,series=\mdseries,size=\Large}
+% metropolis sets standout body text bold; use regular weight so **bold** in
+% the closing-slide contact block (the name) actually stands out
+\setbeamerfont{standout}{size=\Large,series=\mdseries}
 
 % Bound every \includegraphics by height as well as width, so a slide whose
 % body is a plain markdown image (![](fig.png)) fits the frame instead of
@@ -96,7 +99,7 @@
 \setbeamercolor{footline}{bg=MITDarkRed,fg=white}
 % Footer text: set `footer:` in the document YAML (mit-filters.lua turns it into
 % a \renewcommand); this is the fallback when the document doesn't set one.
-\providecommand{\mitfootertext}{Joseph R. Loffredo (MIT)}
+\providecommand{\mitfootertext}{Joe Loffredo (MIT)}
 \makeatletter
 \newcommand{\mit@footline}[1]{%
   \ifbool{metropolis@standout}{}{%
