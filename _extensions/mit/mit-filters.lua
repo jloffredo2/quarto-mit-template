@@ -43,21 +43,46 @@ function Span(el)
   if el.classes:includes("cite") then
     return wrap_latex(el, "{\\footnotesize\\textcolor{gray}{(", ")}}")
   end
+  --  [Author. Year. "Title." Outlet]{.ref} -> small but in body ink and with no
+  --  parentheses: for a full reference the audience is meant to read.
+  if el.classes:includes("ref") then
+    return wrap_latex(el, "{\\footnotesize ", "}")
+  end
 end
 
 function Link(el)
   if is_beamer() and el.classes:includes("button") and el.target:sub(1, 1) == "#" then
     local label = el.target:sub(2)
     local text = pandoc.utils.stringify(el.content)
+    -- A "Return" button goes back to the slide's last step, where the
+    -- presenter left it, not to its first (see \returnbutton).
+    if text:match("^Return") then
+      return pandoc.RawInline("latex",
+        "\\returnbutton{" .. label .. "}{" .. text .. "}")
+    end
     return pandoc.RawInline("latex",
       "\\hyperref[" .. label .. "]{\\beamergotobutton{" .. text .. "}}")
   end
 end
 
+local header_body
+
+-- Every labelled frame records its last page, for \returnbutton.
 function Header(el)
   if not is_beamer() then
     return nil
   end
+  local res = header_body(el)
+  if el.level == 2 and el.identifier ~= "" then
+    local blocks = res == nil and { el } or (res.t and { res } or res)
+    table.insert(blocks, pandoc.RawBlock("latex",
+      "\\markframeend{" .. el.identifier .. "}"))
+    return blocks
+  end
+  return res
+end
+
+header_body = function(el)
   -- metropolis standout frames are titleless (the big centered text is the
   -- content); move the header text into the frame body, styled like a title
   if el.level == 2 and el.classes:includes("standout") then
@@ -72,6 +97,13 @@ function Header(el)
   -- still sets the frametitle and its progress rule. Blank the header to leave
   -- the frame genuinely bare; the text stays as the slide's identifier.
   if el.level == 2 and el.classes:includes("plain") then
+    el.content = pandoc.Inlines({})
+    return el
+  end
+  -- ## Title {.notitle}: like .plain but the footline stays. Pandoc turns the
+  -- `plain` class into the [plain] frame option, which drops the footer; this
+  -- class has no such mapping, so only the header text is blanked.
+  if el.level == 2 and el.classes:includes("notitle") then
     el.content = pandoc.Inlines({})
     return el
   end
@@ -201,12 +233,55 @@ local function is_lone_image(blk)
   return blk.t == "Para" and #blk.content == 1 and blk.content[1].t == "Image"
 end
 
+-- Frames are top-aligned (classoption t), so the image gets a small fixed gap
+-- above and the stretch below; buttons that follow still drop to the footer.
+-- \centering rather than a center environment: knitr already wraps its figures
+-- in one, and nesting two adds \topsep twice.
 local function centred(blk)
+  -- Strip fig-align so pandoc does not add its own center environment (with
+  -- \topsep) for some images and not others: every lone image then starts
+  -- the same distance below the frame title.
+  blk = blk:walk({
+    Image = function(img)
+      img.attributes["fig-align"] = nil
+      return img
+    end,
+  })
+  if blk.t == "Figure" then
+    blk.attributes["fig-align"] = nil
+  end
   return {
-    pandoc.RawBlock("latex", "\\vspace*{\\fill}\\begin{center}"),
+    pandoc.RawBlock("latex", "\\vspace*{0.2em}{\\centering"),
     blk,
-    pandoc.RawBlock("latex", "\\end{center}\\vspace*{\\fill}"),
+    pandoc.RawBlock("latex", "\\par}\\vspace*{\\fill}"),
   }
+end
+
+-- Pandoc's beamer writer lets a width-only image run to height=\textheight,
+-- which ignores the frame title and footer. Cap it unless a height is given.
+local function cap_image_height(img)
+  if is_beamer() and img.attributes.height == nil then
+    img.attributes.height = "70%"
+    return img
+  end
+end
+
+-- A paragraph made only of .button links (an appendix button row).
+local function is_button_row(blk)
+  if blk.t ~= "Para" then return false end
+  local n = 0
+  for _, il in ipairs(blk.content) do
+    if il.t == "Link" and il.classes:includes("button") then
+      n = n + 1
+    elseif il.t == "RawInline" and (il.text:find("beamergotobutton", 1, true)
+        or il.text:find("returnbutton", 1, true)) then
+      -- the Link filter has already run and turned the button into raw LaTeX
+      n = n + 1
+    elseif il.t ~= "Space" and il.t ~= "SoftBreak" then
+      return false
+    end
+  end
+  return n > 0
 end
 
 function Blocks(blocks)
@@ -217,6 +292,15 @@ function Blocks(blocks)
   for _, blk in ipairs(blocks) do
     if is_lone_image(blk) or (blk.t == "Figure" and #blk.caption.long == 0) then
       out:extend(centred(blk))
+      changed = true
+    elseif is_button_row(blk) then
+      -- A stretch above every button row drops it to the same spot on every
+      -- slide, whatever the content above; reserve a little space under it.
+      -- filll, not \fill: a top-aligned frame ends in its own \vfill, which
+      -- would otherwise take half the slack and leave the row mid-slide.
+      out:insert(pandoc.RawBlock("latex", "\\vspace*{0pt plus 1filll}"))
+      out:insert(blk)
+      out:insert(pandoc.RawBlock("latex", "\\vspace*{0.6em}"))
       changed = true
     else
       out:insert(blk)
@@ -294,7 +378,187 @@ local function block_div(el)
   return el
 end
 
+-- ::: {.timeline} wrapping ::: {.beat year="..." label="..."} blocks -> a
+-- horizontal timeline that fills in one moment per click, with the beat's
+-- content (typically an image) swapped in underneath. Moments accumulate
+-- along the rail; the current one is maroon, earlier ones gray. Beamer draws
+-- the rail in TikZ with overlay specs; revealjs uses fragments and lets
+-- reveal's .current-fragment class do the highlighting.
+local function timeline_div(el)
+  local beats = pandoc.List()
+  for _, blk in ipairs(el.content) do
+    if blk.t == "Div" and blk.classes:includes("beat") then
+      beats:insert(blk)
+    end
+  end
+  local n = #beats
+  if n == 0 then
+    return nil
+  end
+
+  local function md(s)
+    return pandoc.utils.blocks_to_inlines(pandoc.read(s or "", "markdown").blocks)
+  end
+
+  if is_beamer() then
+    local out = pandoc.List()
+    local tikz = {
+      "\\begin{center}",
+      "\\begin{tikzpicture}",
+      "\\useasboundingbox (0,-1.45) rectangle (\\textwidth,0.75);",
+    }
+    local function x(i)
+      return string.format("%.4f\\textwidth", (2 * i - 1) / (2 * n))
+    end
+    local labelw = string.format("%.4f\\textwidth", 1.06 / n)
+    tikz[#tikz + 1] = "\\draw[MITGray,line width=2.5pt] (" .. x(1) .. ",0) -- (" .. x(n) .. ",0);"
+    -- rail segments first, dots after, so the dots sit on top of the lines
+    for i = 2, n do
+      tikz[#tikz + 1] = "\\draw<" .. i .. "->[MITDarkRed,line width=2.5pt] (" ..
+        x(i - 1) .. ",0) -- (" .. x(i) .. ",0);"
+    end
+    for i, beat in ipairs(beats) do
+      local year = to_latex(md(beat.attributes["year"]))
+      local label = to_latex(md(beat.attributes["label"]))
+      tikz[#tikz + 1] = "\\node<" .. i .. "->[circle,inner sep=0,minimum size=8pt,fill=MITFooterGray] at (" ..
+        x(i) .. ",0) {};"
+      tikz[#tikz + 1] = "\\node<" .. i .. ">[circle,inner sep=0,minimum size=12pt,fill=MITDarkRed] at (" ..
+        x(i) .. ",0) {};"
+      tikz[#tikz + 1] = "\\node<" .. i .. "->[above=6pt,font=\\small\\bfseries] at (" .. x(i) .. ",0) {" ..
+        "\\alt<" .. i .. ">{\\color{MITDarkRed}}{\\color{MITFooterGray}}" .. year .. "};"
+      tikz[#tikz + 1] = "\\node<" .. i .. "->[below=7pt,font=\\fontsize{6.8pt}{8pt}\\selectfont,align=center,text width=" ..
+        labelw .. "] at (" .. x(i) .. ",0) {" ..
+        "\\alt<" .. i .. ">{\\color{MITDarkRed}\\bfseries}{\\color{MITFooterGray}}\\hyphenchar\\font=-1 " .. label .. "};"
+    end
+    tikz[#tikz + 1] = "\\end{tikzpicture}"
+    tikz[#tikz + 1] = "\\end{center}"
+    -- fixed-height box so the rail doesn't jump as image heights change
+    tikz[#tikz + 1] = "\\begin{minipage}[c][0.52\\textheight][c]{\\textwidth}\\centering"
+    out:insert(pandoc.RawBlock("latex", table.concat(tikz, "\n")))
+    for i, beat in ipairs(beats) do
+      out:insert(pandoc.RawBlock("latex", "\\only<" .. i .. ">{%"))
+      if #beat.content == 1 and is_lone_image(beat.content[1]) then
+        out:insert(pandoc.RawBlock("latex",
+          "\\includegraphics[width=\\textwidth,height=0.5\\textheight,keepaspectratio]{" ..
+          beat.content[1].content[1].src .. "}"))
+      else
+        out:extend(beat.content)
+      end
+      out:insert(pandoc.RawBlock("latex", "}"))
+    end
+    out:insert(pandoc.RawBlock("latex", "\\end{minipage}"))
+    return out
+  end
+
+  -- revealjs: moment i and beat i share a fragment index so they land on the
+  -- same click; the beat is current-visible so the next one replaces it.
+  local rail = pandoc.List()
+  for i, beat in ipairs(beats) do
+    local cell = pandoc.Div({
+      pandoc.Div({ pandoc.Plain(md(beat.attributes["year"])) }, pandoc.Attr("", { "moment-year" })),
+      pandoc.Div({}, pandoc.Attr("", { "moment-dot" })),
+      pandoc.Div({ pandoc.Plain(md(beat.attributes["label"])) }, pandoc.Attr("", { "moment-label" })),
+    }, pandoc.Attr("", { "moment", "fragment" }, { ["data-fragment-index"] = tostring(i - 1) }))
+    rail:insert(cell)
+  end
+  local stack = pandoc.List()
+  for i, beat in ipairs(beats) do
+    stack:insert(pandoc.Div(beat.content,
+      pandoc.Attr("", { "fragment", "current-visible" }, { ["data-fragment-index"] = tostring(i - 1) })))
+  end
+  return pandoc.Div({
+    pandoc.Div(rail, pandoc.Attr("", { "timeline-rail" }, { style = "--moments: " .. n })),
+    pandoc.Div(stack, pandoc.Attr("", { "r-stack", "timeline-stack" })),
+  }, pandoc.Attr("", { "timeline" }))
+end
+
+-- ::: {.tight} ... ::: -> a lone image inside keeps its natural position instead
+-- of being vertically centred with \vspace*{\fill} (see Blocks below), so text
+-- or buttons after it stay next to it. The image is still centred horizontally.
+-- Div runs before Blocks, so adding a second inline is enough to opt out.
+local function tight_div(el)
+  if not is_beamer() then
+    return el
+  end
+  for i, blk in ipairs(el.content) do
+    if blk.t == "Figure" and #blk.caption.long == 0 then
+      -- knitr figures arrive as captionless Figures; reduce to the image
+      local img
+      pandoc.walk_block(blk, { Image = function(im) img = img or im end })
+      if img then
+        blk = pandoc.Para({ img })
+      end
+    end
+    if is_lone_image(blk) then
+      blk.content:insert(1, pandoc.RawInline("latex", "{\\centering "))
+      blk.content:insert(pandoc.RawInline("latex", "\\par}"))
+      el.content[i] = blk
+    elseif blk.t == "Div" then
+      el.content[i] = tight_div(blk)
+    end
+  end
+  return el
+end
+
+-- ::: {.step} ... ::: -> the block appears on the next click and stays
+-- (cumulative, unlike .stack/.beat which replace). No paragraph spacing is
+-- added around it, unlike pandoc's ". . ." pause.
+local function step_div(el)
+  if is_beamer() then
+    local blocks = pandoc.List({ pandoc.RawBlock("latex", "\\onslide<+->") })
+    blocks:extend(el.content)
+    return blocks
+  end
+  el.classes:insert("fragment")
+  return el
+end
+
+-- `.center` centres a short takeaway line in both outputs. revealjs styles
+-- .center itself, so only beamer needs the environment.
+local function center_div(el)
+  if is_beamer() then
+    local blocks = pandoc.List({ pandoc.RawBlock("latex", "\\begin{center}") })
+    blocks:extend(el.content)
+    blocks:insert(pandoc.RawBlock("latex", "\\end{center}"))
+    return blocks
+  end
+  return el
+end
+
+-- ::: {.steps} wraps ONE list whose items appear in turn. Separate .step divs
+-- would each open their own list, and beamer then charges topsep twice plus a
+-- parskip between them, so stepped bullets end up further apart than ordinary
+-- ones. Setting the default overlay specification keeps it a single list, so
+-- the deck's itemsep governs the gaps and the bullet markers stage too.
+local function steps_div(el)
+  if is_beamer() then
+    local blocks = pandoc.List({
+      pandoc.RawBlock("latex", "\\begingroup\\beamerdefaultoverlayspecification{<+->}"),
+    })
+    blocks:extend(el.content)
+    blocks:insert(pandoc.RawBlock("latex", "\\endgroup"))
+    return blocks
+  end
+  el.classes:insert("fragment")
+  return el
+end
+
 function Div(el)
+  if el.classes:includes("steps") then
+    return steps_div(el)
+  end
+  if el.classes:includes("center") then
+    return center_div(el)
+  end
+  if el.classes:includes("step") then
+    return step_div(el)
+  end
+  if el.classes:includes("timeline") then
+    return timeline_div(el)
+  end
+  if el.classes:includes("tight") then
+    return tight_div(el)
+  end
   if el.classes:includes("stack") then
     return stack_div(el)
   end
@@ -313,7 +577,9 @@ function Div(el)
     })
     return el
   end
+  local only = el.attributes["only"]
   local open = table.concat({
+    only and ("\\only<" .. only .. ">{%") or "",
     "\\begin{tikzpicture}[remember picture,overlay]",
     "\\begin{pgfinterruptboundingbox}",
     -- start below the frametitle so the slide keeps its heading
@@ -332,7 +598,8 @@ function Div(el)
   -- the negative skip takes that line back. (\smash is not an option here:
   -- the node holds a paragraph, which an \hbox cannot.)
   blocks:insert(pandoc.RawBlock("latex",
-    "};\n\\end{tikzpicture}\\vspace*{-1.5\\baselineskip}"))
+    "};\n\\end{tikzpicture}\\vspace*{-1.5\\baselineskip}" ..
+    (only and "}" or "")))
   return blocks
 end
 
@@ -344,4 +611,8 @@ function Meta(meta)
   footer_command(meta)
   authors_with_affiliations(meta)
   return meta
+end
+
+function Image(img)
+  return cap_image_height(img)
 end

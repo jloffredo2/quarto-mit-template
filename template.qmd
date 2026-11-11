@@ -88,6 +88,91 @@ $$
 
 No header bar — useful for full-bleed figures or when you want a quieter look.
 
+## {.notitle}
+
+`{.notitle}` drops the title like `.plain`, but the footer and slide number stay.
+
+## Stepped Reveals
+
+::: {.steps}
+- `.steps` wraps one list
+- Its items appear one click at a time
+- With the same spacing as an ordinary list
+:::
+
+::: {.step}
+> A `.step` block appears on the next click and stays.
+:::
+
+::: {.step}
+::: {.center}
+A short **takeaway line**, centred with `.center`
+:::
+:::
+
+## Sections Within a Slide
+
+[**First question**]{.alert}
+
+- A supporting point [Author and Author 2020]{.cite}
+- Another supporting point
+
+```{=latex}
+\sectiongap
+```
+
+[**Second question**]{.alert}
+
+- Lists and lead-in lines share one gap; `\sectiongap` opens a larger one (PDF)
+- [Author, A. 2024. "A Full Reference the Audience Should Read." *Journal Name*]{.ref}
+
+## A Timeline
+
+::::: {.timeline}
+
+::: {.beat year="1993" label="First moment"}
+Each `.beat` adds a moment to the rail and swaps in its content underneath.
+:::
+
+::: {.beat year="2002" label="Second moment"}
+The current moment is maroon; earlier ones turn gray.
+:::
+
+::: {.beat year="2013" label="Third moment"}
+Beats usually hold an image: `![](figure.png)`.
+:::
+
+:::::
+
+## A Callout Overlay
+
+- The slide's own content
+- Washes back when the overlay lands
+
+. . .
+
+::: {.overlay only="2"}
+**The point to remember**
+
+An `.overlay` boxes its content over the slide; `only="2"` limits it to that step in the PDF.
+:::
+
+## A Figure With Buttons {#tight-figure}
+
+::: {.tight}
+```{r}
+#| fig-height: 3.2
+#| fig-width: 8
+#| out-width: "70%"
+par(mar = c(4, 4, 0.5, 0.5))
+plot(pressure, pch = 19, col = "#750014")
+```
+:::
+
+`.tight` keeps text next to the figure; button rows always sit at the bottom.
+
+[Estimates](#app-estimates){.button}
+
 ## {{< meta closing.title >}} {#thanks .standout}
 
 {{< meta closing.contact >}}

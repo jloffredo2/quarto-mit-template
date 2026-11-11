@@ -6,7 +6,7 @@ contributes:
   formats:
     revealjs:
       theme: [default, mit.scss]
-      slide-number: c/t
+      slide-number: true   # mit-nav.html supplies the number (n, or A-n)
       footer: "Joe Loffredo (MIT)"   # override with `footer:` in the doc YAML
       controls: true
       controls-layout: bottom-right
@@ -35,9 +35,14 @@ contributes:
       slide-level: 2
       aspectratio: 169
       theme: metropolis
+      # No progress rule under frame titles; a deck that wants it sets
+      # themeoptions: [progressbar=frametitle, block=fill]
       themeoptions:
-        - progressbar=frametitle
+        - progressbar=none
         - block=fill
+      # Top-align frame content; mit-filters.lua places lone images and button
+      # rows on that assumption.
+      classoption: t
       include-in-header: beamer-header.tex
       filters:
         - mit-filters.lua

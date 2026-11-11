@@ -1,6 +1,6 @@
 <script>
-// Beamer-style numbering: title slide unnumbered, main slides n/N (N excludes
-// appendix), appendix slides A-1, A-2, ... (appendixnumberbeamer equivalent).
+// Beamer-style numbering: title slide unnumbered, main slides n, appendix
+// slides A-1, A-2, ... (appendixnumberbeamer equivalent).
 // Appendix starts at the slide with id "appendix" or class "appendix".
 // Implemented as a custom Reveal slideNumber function so it can't be
 // overwritten by reveal's built-in numbering.
@@ -25,7 +25,6 @@
       slideNumber: function (slide) {
         var idx = slides.indexOf(slide);
         if (idx === -1 || isUncounted(slide, idx)) return [""];
-        var mainEnd = appendixIdx === -1 ? slides.length : appendixIdx;
         if (appendixIdx !== -1 && idx >= appendixIdx) {
           var a = 0;
           for (var i = appendixIdx; i <= idx; i++) {
@@ -33,14 +32,11 @@
           }
           return ["A-" + a];
         }
-        var n = 0, total = 0;
-        for (var j = 0; j < mainEnd; j++) {
-          if (!isUncounted(slides[j], j)) {
-            total++;
-            if (j <= idx) n++;
-          }
+        var n = 0;
+        for (var j = 0; j <= idx; j++) {
+          if (!isUncounted(slides[j], j)) n++;
         }
-        return [n + "/" + total];
+        return [String(n)];
       }
     });
 
@@ -58,7 +54,7 @@
       document.body.classList.toggle("on-title-slide", onTitle);
       document.body.classList.toggle("on-standout-slide", cur.classList.contains("standout"));
 
-      // drives the rule under each slide title (metropolis progressbar=frametitle)
+      // drives the rule under each slide title, when $mit-title-progress is on
       var pct = Math.round(Reveal.getProgress() * 100);
       document.documentElement.style.setProperty("--mit-progress", pct + "%");
     }

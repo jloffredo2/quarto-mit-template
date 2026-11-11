@@ -4,7 +4,10 @@
 % consuming project, so resolve both. \graphicspath covers images; fontspec's
 % Path needs a literal, hence the two branches.
 \usepackage{graphicx}
+\usepackage{colortbl}  % \cellcolor for shaded table cells
+\usepackage{multirow}  % margin labels spanning table rows
 \usepackage{tikz}
+\usetikzlibrary{shadows.blur,tikzmark,positioning}
 % Annotated equations (\eqnmarkbox + \annotate). TikZ-based, so the beamer
 % path only; the revealjs build uses \underbrace instead.
 \usepackage{annotate-equations}
@@ -40,6 +43,31 @@
 \definecolor{MITGray}{RGB}{231,230,230}
 \definecolor{MITFooterGray}{RGB}{111,111,111}
 
+% ----- Columns stay within the text margins ----- %
+% Beamer's default spreads \begin{columns} across the whole slide, margins
+% included, so a left column (and any block in it) starts left of the headings
+% and bullets around it. Same as the onlytextwidth class option, which pandoc
+% has no way to pass.
+\makeatletter
+\beamer@onlytextwidthtrue
+\makeatother
+
+% ----- Return buttons land on a slide's last step ----- %
+% A frame's \label points at its first overlay, so "Return" to a slide that
+% builds up would replay the build. Each labelled frame (mit-filters.lua) writes
+% its page to the .aux on every overlay; the last write is its final step, and
+% \returnbutton links to that page's beamer target. Falls back to the label on
+% the first run.
+\makeatletter
+\newcommand{\setretpage}[2]{\expandafter\gdef\csname mit@retpage@#1\endcsname{#2}}
+\newcommand{\markframeend}[1]{%
+  \immediate\write\@auxout{\string\setretpage{#1}{\the\c@page}}}
+\newcommand{\returnbutton}[2]{%
+  \@ifundefined{mit@retpage@#1}%
+    {\hyperref[#1]{\beamergotobutton{#2}}}%
+    {\hyperlink{Navigation\csname mit@retpage@#1\endcsname}{\beamergotobutton{#2}}}}
+\makeatother
+
 % ----- Metropolis customization ----- %
 \setbeamercolor{normal text}{bg=white,fg=black}
 \setbeamercolor{frametitle}{bg=white,fg=MITDarkRed}
@@ -58,7 +86,7 @@
 \setbeamercolor{item projected}{bg=MITDarkRed}
 \setbeamercolor{enumerate item}{fg=MITDarkRed}
 \setbeamertemplate{itemize items}[ball]
-\setbeamertemplate{itemize subitem}{\color{MITDarkRed}$\blacktriangleright$}
+\setbeamertemplate{itemize subitem}{\color{MITDarkRed}\raisebox{0.15ex}{\scriptsize$\blacktriangleright$}}
 
 % Roboto Serif for titles; body stays sans (metropolis default)
 \setbeamercolor{title}{fg=MITDarkRed}
@@ -85,8 +113,8 @@
 \renewenvironment{quote}{%
   \def\FrameCommand{{\color{MITDarkRed}\vrule width 2.5pt}\hspace{9pt}}%
   \MakeFramed{\advance\hsize-\width\FrameRestore}%
-  \color{MITQuoteText}\upshape\raggedright%
-}{\par\endMakeFramed}
+  \begingroup\color{MITQuoteText}\upshape\raggedright%
+}{\par\endgroup\endMakeFramed}
 
 % MIT lockup on the title page
 \titlegraphic{\hfill\includegraphics[height=1.1cm]{mit-lockup-red.png}}
@@ -116,7 +144,7 @@
 }
 \setbeamertemplate{footline}{%
   \ifnum\insertframenumber=1\relax\else
-    \mit@footline{\the\numexpr\insertframenumber-1\relax/\the\numexpr\inserttotalframenumber-1\relax}%
+    \mit@footline{\the\numexpr\insertframenumber-1\relax}%
   \fi
 }
 
@@ -146,3 +174,65 @@
   \fi
 }
 \makeatother
+
+% One type size at every list level: metropolis shrinks each nested level, which
+% makes line spacing look inconsistent from slide to slide.
+\setbeamerfont{itemize/enumerate subbody}{size=\normalsize}
+\setbeamerfont{itemize/enumerate subsubbody}{size=\normalsize}
+\setbeamerfont{itemize subitem}{size=\normalsize}
+\setbeamerfont{itemize subsubitem}{size=\normalsize}
+
+% Uniform spacing across the deck, two rules:
+%  1. Within a section, one gap: item to item, heading or lead-in to its first
+%     item, and item to item across a pause (`. . .` splits a list in two) all
+%     come out the same, because lists add no space above or below themselves
+%     (topsep = partopsep = 0) and \parskip equals \itemsep.
+%  2. Between sections, one larger gap: \sectiongap before every red section
+%     heading except a slide's first.
+% Pandoc's \tightlist (itemsep = parskip = 0) is neutralised so it cannot make
+% some lists tighter than others.
+% Slightly tighter line pitch deck-wide, so dense slides need no local fixes.
+\linespread{0.94}
+\setlength{\parskip}{4pt}
+\setlength{\partopsep}{0pt}
+\renewcommand{\tightlist}{}
+\newcommand{\sectiongap}{\vspace{1.1em}}
+% beamer calls the `body begin` templates BEFORE \list, which then resets
+% \itemsep/\topsep from \@listi..\@listiii, so the list parameters themselves
+% are what has to change. parsep stays 0 so a wrapped bullet does not open a
+% gap inside itself.
+\makeatletter
+\renewcommand{\@listi}{%
+  \leftmargin\leftmargini
+  \topsep 0pt \partopsep 0pt \parsep 0pt \itemsep 4pt}
+\let\@listI\@listi
+\renewcommand{\@listii}{%
+  \leftmargin\leftmarginii
+  \labelwidth\leftmarginii \advance\labelwidth-\labelsep
+  \topsep 0pt \partopsep 0pt \parsep 0pt \itemsep 2pt}
+\renewcommand{\@listiii}{%
+  \leftmargin\leftmarginiii
+  \labelwidth\leftmarginiii \advance\labelwidth-\labelsep
+  \topsep 0pt \partopsep 0pt \parsep 0pt \itemsep 2pt}
+\makeatother
+
+% \denselists: kept so existing slides still compile; the deck default is now
+% this spacing, so it changes nothing.
+\newcommand{\denselists}{}
+\makeatletter
+% \packedlists: no extra gap at all, for the one or two frames that carry more
+% list than the default fits. Keeps the deck's type size.
+\newcommand{\packedlists}{%
+  \def\@listi{\leftmargin\leftmargini \topsep 0pt \partopsep 0pt \parsep 0pt \itemsep 0pt}%
+  \let\@listI\@listi
+  \def\@listii{%
+    \leftmargin\leftmarginii
+    \labelwidth\leftmarginii \advance\labelwidth-\labelsep
+    \topsep 0pt \parsep 0pt \itemsep 0pt}%
+  \def\@listiii{%
+    \leftmargin\leftmarginiii
+    \labelwidth\leftmarginiii \advance\labelwidth-\labelsep
+    \topsep 0pt \parsep 0pt \itemsep 0pt}%
+  \setlength{\parskip}{2pt}}
+\makeatother
+
